@@ -78,18 +78,24 @@ export default () => {
           const json = await res.json()
 
           after = json.data.after
-          if (!after) break
-
           posts = posts.concat(json.data.children)
+          if (!after) break
         }
+
+
+        console.log("[i] Fetched posts:")
+        console.log(posts)
 
         // Collect posts w/ i.redd.it only
         posts = posts.map((e) => e.data)
 
         // Filter by NSFW if enabled
-        if (config.nsfw) posts = posts.filter((e) => e.thumbnail === "nsfw")
+        // if (config.nsfw) posts = posts.filter((e) => e.thumbnail === "nsfw")
 
         posts = posts.filter((e) => e.url.includes("i.redd.it"))
+
+        console.log("[i] Filtered posts:")
+        console.log(posts)
 
         setCache({ lastUpdated: Date.now(), data: posts })
       } else {
@@ -111,11 +117,13 @@ export default () => {
 
       const rawTitle = decode(post.title)
 
+      const titleResRegex = /\[.*?\]|\(.*?\)|\{.*?\}/g
+
       const parts = rawTitle
-        .match(/\[.*?\]|\(.*?\)|\{.*?\}/g)
+        .match(titleResRegex)
         .filter((e) => !!e)
         .map((e) => e.slice(1, -1))
-      const title = rawTitle.replace(/\[.*?\]|\(.*?\)|\{.*?\}/g, "").trim()
+      const title = rawTitle.replace(titleResRegex, "").trim()
 
       let resolution = parts.filter((e) => e.match(/[\d\s]+[x×*][\d\s]+/g))?.[0]
 
